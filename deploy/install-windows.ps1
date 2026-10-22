@@ -186,7 +186,9 @@ if ($CertificateThumbprint) {
 } else {
     $certificate = Get-ChildItem Cert:\LocalMachine\My | Where-Object {
         $_.HasPrivateKey -and $_.NotAfter -gt (Get-Date).AddDays(7) -and
-        @($_.DnsNameList | ForEach-Object { $_.Unicode }) -contains $HostName
+        @($_.DnsNameList | Where-Object { $null -ne $_ } | ForEach-Object {
+            if ($_ -is [string]) { $_ } else { $_.Unicode }
+        }) -contains $HostName
     } | Sort-Object NotAfter -Descending | Select-Object -First 1
     if (-not $certificate) {
         $certificate = New-SelfSignedCertificate -DnsName $HostName -CertStoreLocation Cert:\LocalMachine\My `
@@ -194,7 +196,9 @@ if ($CertificateThumbprint) {
     }
 }
 if (-not $certificate.HasPrivateKey -or $certificate.NotAfter -le (Get-Date) -or
-    @($certificate.DnsNameList | ForEach-Object { $_.Unicode }) -notcontains $HostName) {
+    @($certificate.DnsNameList | Where-Object { $null -ne $_ } | ForEach-Object {
+            if ($_ -is [string]) { $_ } else { $_.Unicode }
+        }) -notcontains $HostName) {
     throw 'Certificate must have a private key, be valid, and include the exact hostname in its DNS names.'
 }
 Export-Certificate -Cert $certificate -FilePath (Join-Path $secrets 'btl-server.cer') -Force | Out-Null
