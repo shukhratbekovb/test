@@ -1,0 +1,26 @@
+name: Windows installer smoke test
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  install:
+    runs-on: windows-2022
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install and check IIS, TLS, application and backups
+        shell: powershell
+        run: .\deploy\install-windows.ps1
+      - name: Repeat installer to verify updates preserve configuration and data
+        shell: powershell
+        run: |
+          $before = (Get-FileHash C:\Apps\BTL\.env).Hash
+          .\deploy\install-windows.ps1
+          if ((Get-FileHash C:\Apps\BTL\.env).Hash -ne $before) { throw '.env changed during update' }
+      - name: Diagnostic log on failure
+        if: failure()
+        shell: powershell
+        run: |
+          if (Test-Path C:\Apps\BTL\logs\server.log) { Get-Content C:\Apps\BTL\logs\server.log -Tail 100 }
+          Get-ScheduledTaskInfo -TaskName 'BTL Workload Server' -ErrorAction SilentlyContinue

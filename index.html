@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102e4c">
+  <title>BTL | Мониторинг занятости</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="На главную">
+      <span class="brand-mark">BTL</span>
+      <span><strong>BOSHTRANSLOYIHA</strong><small>Мониторинг занятости</small></span>
+    </a>
+    <div id="account" class="account hidden">
+      <span id="account-name"></span>
+      <span id="account-role-badge" class="role-badge"></span>
+      <button id="password-open" class="button button-ghost">Сменить пароль</button>
+      <button id="logout" class="button button-ghost">Выйти</button>
+    </div>
+  </header>
+  <main class="page">
+    <section id="login-screen" class="login-layout">
+      <div class="login-info">
+        <p class="eyebrow">АО «Boshtransloyiha»</p>
+        <h1>Рабочее время и загрузка отделов</h1>
+        <p>Единый журнал выполненных работ и аналитика по подразделениям института.</p>
+        <div class="login-note"><span class="secure-icon">✓</span> Доступ только для сотрудников с учётной записью</div>
+      </div>
+      <form id="login-form" class="card login-card">
+        <div class="section-heading">
+          <p class="eyebrow">Личный кабинет</p>
+          <h2>Вход в систему</h2>
+        </div>
+        <label for="login-username">Логин</label>
+        <input id="login-username" name="username" autocomplete="username" required>
+        <label for="login-password">Пароль</label>
+        <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+        <button class="button button-primary button-block" type="submit">Войти</button>
+        <p id="login-error" class="error-text" role="alert"></p>
+      </form>
+    </section>
+    <div id="application" class="hidden">
+      <div id="notice" class="notice hidden" role="status"></div>
+      <section class="card">
+        <div class="section-heading section-heading-row">
+          <div><p class="eyebrow">Аналитика</p><h2>Период и фильтры</h2></div>
+          <button id="export" class="button button-secondary">Экспорт CSV</button>
+        </div>
+        <div class="form-grid filters">
+          <div><label for="from">С даты</label><input id="from" type="date"></div>
+          <div><label for="to">По дату</label><input id="to" type="date"></div>
+          <div><label for="filter-department">Подразделение</label><select id="filter-department"></select></div>
+          <div><label for="filter-employee">Сотрудник</label><select id="filter-employee"></select></div>
+          <div><label for="daily-norm">Норма часов в день</label><input id="daily-norm" type="number" min="1" max="24" value="8"></div>
+        </div>
+      </section>
+      <section class="stats">
+        <article class="stat-card"><span>Учтено часов</span><strong id="stat-hours">0 ч</strong></article>
+        <article class="stat-card"><span>Записей о работах</span><strong id="stat-records">0</strong></article>
+        <article class="stat-card"><span>Сотрудников с работами</span><strong id="stat-employees">0</strong></article>
+        <article class="stat-card"><span>Средняя загрузка</span><strong id="stat-utilization">0%</strong></article>
+      </section>
+      <div class="dashboard-grid">
+        <section class="card">
+          <div class="section-heading"><p class="eyebrow">Институт</p><h2>Сотрудники по подразделениям</h2></div>
+          <div id="department-summary" class="department-summary"></div>
+        </section>
+        <section class="card">
+          <div class="section-heading"><p class="eyebrow">Команда</p><h2>Список сотрудников</h2></div>
+          <div id="department-employees" class="department-employees" aria-live="polite">
+            <p class="empty-row">Выберите подразделение, чтобы посмотреть сотрудников.</p>
+          </div>
+        </section>
+      </div>
+      <section class="card">
+        <div class="section-heading"><p class="eyebrow">Аналитика</p><h2>Загрузка сотрудников</h2></div>
+        <div class="table-scroll"><table><thead><tr><th>Сотрудник</th><th>Подразделение</th><th>Часы</th><th>Загрузка</th></tr></thead><tbody id="summary-rows"></tbody></table></div>
+      </section>
+      <section class="card">
+        <div class="section-heading"><p class="eyebrow">Учёт времени</p><h2>Регистрация выполненной работы</h2></div>
+        <form id="work-form">
+          <div class="form-grid">
+            <div><label for="work-department">Подразделение *</label><select id="work-department" required></select></div>
+            <div><label for="work-employee">Ф.И.О. сотрудника *</label><select id="work-employee" required></select></div>
+            <div><label for="work-position">Должность</label><input id="work-position" readonly></div>
+            <div><label for="work-date">Дата выполнения *</label><input id="work-date" type="date" required></div>
+            <div class="span-two"><label for="work-title">Наименование работы / проекта *</label><input id="work-title" maxlength="200" required placeholder="Например: Разработка чертежей станции"></div>
+            <div><label for="work-start">Начало *</label><input id="work-start" type="time" value="09:00" required></div>
+            <div><label for="work-end">Завершение *</label><input id="work-end" type="time" value="12:00" required></div>
+          </div>
+          <div class="form-actions"><button class="button button-primary" type="submit">Добавить запись</button><span class="muted">Записи разных сотрудников хранятся в общей базе института.</span></div>
+        </form>
+      </section>
+      <section class="card">
+        <div class="section-heading"><p class="eyebrow">История</p><h2>Журнал работ</h2></div>
+        <div class="table-scroll"><table><thead><tr><th>Дата</th><th>Подразделение</th><th>Ф.И.О.</th><th>Должность</th><th>Работа</th><th>Начало</th><th>Завершение</th><th>Часов</th><th></th></tr></thead><tbody id="work-rows"></tbody></table></div>
+      </section>
+      <section id="directory" class="card hidden">
+        <div class="section-heading"><p class="eyebrow">Управление</p><h2>Справочники и сотрудники</h2></div>
+        <div class="admin-grid">
+          <form id="department-form" class="inline-form admin-only"><label for="new-department">Подразделения</label><div class="inline-controls"><input id="new-department" maxlength="120" required placeholder="Название подразделения"><button class="button button-secondary" type="submit">Добавить новое подразделение</button></div></form>
+          <form id="position-form" class="inline-form admin-only"><label for="new-position">Должности</label><div class="inline-controls"><input id="new-position" maxlength="300" required placeholder="Название должности"><button class="button button-secondary" type="submit">Добавить новую должность</button></div></form>
+          <form id="employee-form" class="inline-form"><label for="new-employee-department">Создание сотрудника</label><div class="inline-controls"><select id="new-employee-department" required></select><select id="new-employee-position" required></select><input id="new-employee-surname" maxlength="80" required placeholder="Фамилия"><input id="new-employee-first-name" maxlength="80" required placeholder="Имя"><input id="new-employee-patronymic" maxlength="80" required placeholder="Отчество"><button class="button button-secondary" type="submit">Добавить сотрудника</button></div></form>
+          <form id="account-form" class="inline-form admin-only">
+            <label for="account-employee">Создание учётной записи сотрудника</label>
+            <div class="inline-controls">
+              <select id="account-employee" required></select>
+              <input id="account-username" maxlength="80" autocomplete="off" required placeholder="Логин">
+              <input id="account-password" type="password" minlength="10" maxlength="256" autocomplete="new-password" required placeholder="Пароль (10+ символов)" title="Не менее 10 символов, включая 2 заглавные и 2 строчные латинские буквы">
+              <button class="button button-primary" type="submit">Создать учётную запись</button>
+            </div>
+            <p class="muted">Пароль: минимум 10 символов, не менее 2 заглавных и 2 строчных латинских букв. Допускаются символы «-» и «_».</p>
+          </form>
+          <section class="inline-form admin-only">
+            <h3>Список подразделений</h3>
+            <div class="table-scroll"><table><thead><tr><th>Подразделение</th><th></th></tr></thead><tbody id="department-rows"></tbody></table></div>
+          </section>
+          <section class="inline-form admin-only">
+            <h3>Список должностей</h3>
+            <div class="table-scroll"><table><thead><tr><th>Должность</th><th></th></tr></thead><tbody id="position-rows"></tbody></table></div>
+          </section>
+        </div>
+        <div id="directory-table" class="table-scroll"><table><thead><tr><th>Ф.И.О.</th><th>Подразделение</th><th>Должность</th><th>Статус</th><th></th></tr></thead><tbody id="directory-rows"></tbody></table></div>
+      </section>
+    </div>
+  </main>
+  <dialog id="password-dialog" class="dialog">
+    <form id="password-form" method="dialog">
+      <p class="eyebrow">Безопасность</p><h2>Сменить пароль</h2>
+      <label for="old-password">Текущий пароль</label><input id="old-password" type="password" autocomplete="current-password" required>
+      <label for="new-password">Новый пароль</label><input id="new-password" type="password" minlength="10" maxlength="256" autocomplete="new-password" title="Не менее 10 символов, включая 2 заглавные и 2 строчные латинские буквы" required>
+      <div class="form-actions"><button class="button button-secondary" type="button" id="password-cancel">Отмена</button><button class="button button-primary" type="submit">Сменить пароль</button></div>
+    </form>
+  </dialog>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>
